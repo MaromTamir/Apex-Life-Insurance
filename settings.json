@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "Write-Output '{\"systemMessage\": \"MEMORY UPDATE REQUIRED: Before this session ends, update C:\\\\Users\\\\marom\\\\.claude\\\\projects\\\\C--Users-marom-apex-insurance\\\\memory\\\\ with any new work done this session. Update project_apex_crm.md with: what was worked on, what was completed, what is still pending, and any decisions made. Keep it current so the next session starts with full context.\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}

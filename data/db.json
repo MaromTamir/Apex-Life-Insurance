@@ -1,0 +1,510 @@
+{
+  "appointments": [
+    {
+      "id": 1,
+      "firstName": "tom",
+      "lastName": "dfghj",
+      "phone": "818-687-1007",
+      "email": "m@gmail.com",
+      "policyType": "Term Life Insurance",
+      "date": "2026-04-28T16:00",
+      "agent": "Noa Shapiro",
+      "meetingType": "In-Office",
+      "notes": "wants 100k policy",
+      "status": "confirmed",
+      "createdAt": "2026-04-27T04:19:12.184Z",
+      "updatedAt": "2026-04-27T05:16:35.492Z"
+    },
+    {
+      "id": 2,
+      "firstName": "Mak",
+      "lastName": "Kam",
+      "phone": "898562356",
+      "email": "makkk@yahoo.com",
+      "policyType": "Term Life Insurance",
+      "date": "2026-04-28T22:42",
+      "agent": "David Cohen",
+      "meetingType": "In-Office",
+      "notes": "150k policy",
+      "status": "confirmed",
+      "createdBy": "david",
+      "createdAt": "2026-04-27T05:43:12.897Z",
+      "updatedAt": "2026-04-27T05:47:53.165Z"
+    }
+  ],
+  "contacts": [],
+  "callLogs": [
+    {
+      "id": 1,
+      "number": "8186201317",
+      "contactName": "",
+      "via": "whatsapp",
+      "createdAt": "2026-04-27T04:19:47.723Z"
+    },
+    {
+      "id": 2,
+      "number": "8186201317",
+      "contactName": "",
+      "via": "tel",
+      "createdAt": "2026-04-27T04:20:05.969Z"
+    },
+    {
+      "id": 3,
+      "number": "8186201317",
+      "contactName": "",
+      "via": "tel",
+      "createdAt": "2026-04-27T04:24:29.730Z"
+    },
+    {
+      "id": 4,
+      "number": "8186201317",
+      "contactName": "",
+      "via": "tel",
+      "appointmentId": null,
+      "agent": "David Cohen",
+      "createdAt": "2026-04-27T05:42:08.173Z"
+    },
+    {
+      "id": 5,
+      "number": "818-687-1007",
+      "contactName": "tom dfghj",
+      "via": "tel",
+      "appointmentId": 1,
+      "agent": "Noa Shapiro",
+      "createdAt": "2026-04-27T05:59:28.394Z"
+    },
+    {
+      "id": 6,
+      "number": "123",
+      "contactName": "Mak Kam",
+      "via": "tel",
+      "appointmentId": 2,
+      "agent": "David Cohen",
+      "createdAt": "2026-04-27T13:26:14.334Z"
+    }
+  ],
+  "prospectNotes": [],
+  "activityLog": [
+    {
+      "id": 53,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-28T06:01:46.283Z"
+    },
+    {
+      "id": 52,
+      "type": "auth.login",
+      "description": "Sarah Levi logged in",
+      "referenceId": 3,
+      "createdAt": "2026-04-28T04:33:31.709Z"
+    },
+    {
+      "id": 51,
+      "type": "auth.logout",
+      "description": "Administrator logged out",
+      "referenceId": 1,
+      "createdAt": "2026-04-28T04:33:24.109Z"
+    },
+    {
+      "id": 50,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-28T04:32:48.130Z"
+    },
+    {
+      "id": 49,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T14:22:05.083Z"
+    },
+    {
+      "id": 48,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T13:32:58.474Z"
+    },
+    {
+      "id": 47,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T13:32:11.928Z"
+    },
+    {
+      "id": 46,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T13:27:53.530Z"
+    },
+    {
+      "id": 45,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T13:27:16.648Z"
+    },
+    {
+      "id": 44,
+      "type": "call.made",
+      "description": "Mak Kam via tel (by David Cohen)",
+      "referenceId": 6,
+      "createdAt": "2026-04-27T13:26:14.334Z"
+    },
+    {
+      "id": 43,
+      "type": "auth.login",
+      "description": "Michael Roth logged in",
+      "referenceId": 4,
+      "createdAt": "2026-04-27T13:26:14.322Z"
+    },
+    {
+      "id": 42,
+      "type": "auth.login",
+      "description": "Noa Shapiro logged in",
+      "referenceId": 5,
+      "createdAt": "2026-04-27T13:26:14.320Z"
+    },
+    {
+      "id": 41,
+      "type": "auth.login",
+      "description": "Sarah Levi logged in",
+      "referenceId": 3,
+      "createdAt": "2026-04-27T13:26:14.317Z"
+    },
+    {
+      "id": 40,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T13:26:14.314Z"
+    },
+    {
+      "id": 39,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T13:26:14.137Z"
+    },
+    {
+      "id": 38,
+      "type": "auth.logout",
+      "description": "Administrator logged out",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T06:05:30.945Z"
+    },
+    {
+      "id": 37,
+      "type": "auth.logout",
+      "description": "Sarah Levi logged out",
+      "referenceId": 3,
+      "createdAt": "2026-04-27T06:05:27.122Z"
+    },
+    {
+      "id": 36,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T06:04:06.151Z"
+    },
+    {
+      "id": 35,
+      "type": "auth.login",
+      "description": "Sarah Levi logged in",
+      "referenceId": 3,
+      "createdAt": "2026-04-27T06:03:35.787Z"
+    },
+    {
+      "id": 34,
+      "type": "auth.logout",
+      "description": "David Cohen logged out",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T06:03:28.940Z"
+    },
+    {
+      "id": 33,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T06:03:08.055Z"
+    },
+    {
+      "id": 32,
+      "type": "call.made",
+      "description": "tom dfghj via tel (by Noa Shapiro)",
+      "referenceId": 5,
+      "createdAt": "2026-04-27T05:59:28.394Z"
+    },
+    {
+      "id": 31,
+      "type": "auth.login",
+      "description": "Noa Shapiro logged in",
+      "referenceId": 5,
+      "createdAt": "2026-04-27T05:59:28.390Z"
+    },
+    {
+      "id": 30,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:59:28.249Z"
+    },
+    {
+      "id": 29,
+      "type": "appointment.status",
+      "description": "Mak Kam → confirmed (by David Cohen)",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T05:47:53.165Z"
+    },
+    {
+      "id": 28,
+      "type": "auth.login",
+      "description": "Sarah Levi logged in",
+      "referenceId": 3,
+      "createdAt": "2026-04-27T05:45:02.094Z"
+    },
+    {
+      "id": 27,
+      "type": "appointment.created",
+      "description": "Mak Kam — Term Life Insurance (by David Cohen)",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T05:43:12.897Z"
+    },
+    {
+      "id": 26,
+      "type": "call.made",
+      "description": "8186201317 via tel (by David Cohen)",
+      "referenceId": 4,
+      "createdAt": "2026-04-27T05:42:08.173Z"
+    },
+    {
+      "id": 25,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T05:41:51.040Z"
+    },
+    {
+      "id": 24,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:40:04.361Z"
+    },
+    {
+      "id": 23,
+      "type": "auth.login",
+      "description": "Noa Shapiro logged in",
+      "referenceId": 5,
+      "createdAt": "2026-04-27T05:39:16.741Z"
+    },
+    {
+      "id": 22,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:39:16.166Z"
+    },
+    {
+      "id": 21,
+      "type": "auth.login",
+      "description": "Noa Shapiro logged in",
+      "referenceId": 5,
+      "createdAt": "2026-04-27T05:39:04.643Z"
+    },
+    {
+      "id": 20,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:39:04.047Z"
+    },
+    {
+      "id": 19,
+      "type": "auth.logout",
+      "description": "Administrator logged out",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:24:35.990Z"
+    },
+    {
+      "id": 18,
+      "type": "auth.logout",
+      "description": "David Cohen logged out",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T05:24:32.346Z"
+    },
+    {
+      "id": 17,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T05:21:08.475Z"
+    },
+    {
+      "id": 16,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:20:25.944Z"
+    },
+    {
+      "id": 15,
+      "type": "appointment.status",
+      "description": "tom dfghj → confirmed (by Administrator)",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:16:35.492Z"
+    },
+    {
+      "id": 14,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:15:58.270Z"
+    },
+    {
+      "id": 13,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T05:14:24.918Z"
+    },
+    {
+      "id": 12,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:37:05.231Z"
+    },
+    {
+      "id": 11,
+      "type": "auth.logout",
+      "description": "David Cohen logged out",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T04:36:54.779Z"
+    },
+    {
+      "id": 10,
+      "type": "auth.login",
+      "description": "David Cohen logged in",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T04:36:46.162Z"
+    },
+    {
+      "id": 9,
+      "type": "auth.login",
+      "description": "Administrator logged in",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:36:34.902Z"
+    },
+    {
+      "id": 8,
+      "type": "appointment.status",
+      "description": "tom dfghj → followup",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:27:25.096Z"
+    },
+    {
+      "id": 7,
+      "type": "appointment.status",
+      "description": "tom dfghj → confirmed",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:26:59.208Z"
+    },
+    {
+      "id": 6,
+      "type": "appointment.status",
+      "description": "tom dfghj → cancelled",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:26:55.521Z"
+    },
+    {
+      "id": 5,
+      "type": "appointment.status",
+      "description": "tom dfghj → followup",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:26:52.091Z"
+    },
+    {
+      "id": 4,
+      "type": "call.made",
+      "description": "8186201317 via tel",
+      "referenceId": 3,
+      "createdAt": "2026-04-27T04:24:29.730Z"
+    },
+    {
+      "id": 3,
+      "type": "call.made",
+      "description": "8186201317 via tel",
+      "referenceId": 2,
+      "createdAt": "2026-04-27T04:20:05.969Z"
+    },
+    {
+      "id": 2,
+      "type": "call.made",
+      "description": "8186201317 via whatsapp",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:19:47.723Z"
+    },
+    {
+      "id": 1,
+      "type": "appointment.created",
+      "description": "tom dfghj — Term Life Insurance",
+      "referenceId": 1,
+      "createdAt": "2026-04-27T04:19:12.184Z"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "name": "Administrator",
+      "team": null
+    },
+    {
+      "id": 2,
+      "username": "david",
+      "password": "agent123",
+      "role": "agent",
+      "name": "David Cohen",
+      "team": "alpha"
+    },
+    {
+      "id": 3,
+      "username": "sarah",
+      "password": "agent123",
+      "role": "agent",
+      "name": "Sarah Levi",
+      "team": "alpha"
+    },
+    {
+      "id": 4,
+      "username": "michael",
+      "password": "agent123",
+      "role": "agent",
+      "name": "Michael Roth",
+      "team": "beta"
+    },
+    {
+      "id": 5,
+      "username": "noa",
+      "password": "agent123",
+      "role": "agent",
+      "name": "Noa Shapiro",
+      "team": "beta"
+    }
+  ],
+  "_seq": {
+    "appointments": 2,
+    "contacts": 0,
+    "callLogs": 6,
+    "prospectNotes": 0,
+    "activityLog": 53,
+    "users": 5
+  }
+}

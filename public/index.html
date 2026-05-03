@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Life Insurance — Cloud</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0a0f1e, #111827, #1a2340); min-height: 100vh; color: #e0e0e0; padding: 24px; }
+
+  /* ── Login Screen ── */
+  #loginScreen {
+    position: fixed; inset: 0; z-index: 999;
+    background: linear-gradient(135deg, #060b14, #0d1520, #111f35);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #loginScreen.hidden { display: none; }
+  .login-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 18px; padding: 40px 36px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-logo .icon { font-size: 3rem; display: block; margin-bottom: 10px; }
+  .login-logo h1 { font-size: 1.4rem; color: #c9a84c; letter-spacing: 0.5px; }
+  .login-logo p  { font-size: 0.75rem; color: #666; margin-top: 4px; letter-spacing: 2px; text-transform: uppercase; }
+  .login-field { margin-bottom: 14px; }
+  .login-field label { display: block; font-size: 0.78rem; color: #888; margin-bottom: 5px; }
+  .login-field input { width: 100%; padding: 11px 14px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); color: #fff; font-size: 0.92rem; outline: none; transition: border 0.2s; }
+  .login-field input:focus { border-color: #c9a84c; }
+  .login-btn { width: 100%; margin-top: 8px; padding: 12px; border: none; border-radius: 9px; cursor: pointer; font-size: 0.95rem; font-weight: 700; background: linear-gradient(135deg,#c9a84c,#e8c96e); color: #0a0f1e; transition: all 0.2s; letter-spacing: 0.3px; }
+  .login-btn:hover { filter: brightness(1.1); }
+  .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .login-error { font-size: 0.78rem; color: #c0392b; text-align: center; margin-top: 10px; min-height: 18px; }
+  .login-hint  { font-size: 0.7rem; color: #444; text-align: center; margin-top: 16px; line-height: 1.6; }
+
+  /* ── Header user strip ── */
+  .user-strip { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; }
+  .user-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; }
+  .user-pill .role-badge { font-size: 0.62rem; padding: 1px 6px; border-radius: 10px; font-weight: 700; text-transform: uppercase; }
+  .role-badge.admin { background: rgba(201,168,76,0.2); color: #c9a84c; }
+  .role-badge.agent { background: rgba(91,155,213,0.2); color: #5b9bd5; }
+  .logout-btn { padding: 4px 12px; border-radius: 20px; font-size: 0.72rem; background: rgba(192,57,43,0.1); border: 1px solid rgba(192,57,43,0.3); color: #c0392b; cursor: pointer; transition: all 0.15s; }
+  .logout-btn:hover { background: #c0392b; color: #fff; }
+
+  header { text-align: center; margin-bottom: 32px; }
+  header h1 { font-size: 2rem; color: #c9a84c; letter-spacing: 1px; }
+  header p  { color: #aaa; margin-top: 6px; font-size: 0.95rem; }
+  .brand-icon { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+  .brand-name { font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: #c9a84c; opacity: 0.7; margin-top: 4px; }
+  .sync-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 4px 14px; border-radius: 20px;
+    font-size: 0.72rem; letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #888; transition: all 0.3s;
+  }
+  .sync-badge.ok      { border-color: rgba(61,220,132,0.3); color: #3ddc84; }
+  .sync-badge.syncing { border-color: rgba(201,168,76,0.3); color: #c9a84c; }
+  .sync-badge.error   { border-color: rgba(192,57,43,0.3);  color: #c0392b; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .sync-badge.syncing .sync-dot { animation: pulse-dot 1s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; max-width: 1260px; margin: 0 auto 20px; }
+  .tab {
+    padding: 8px 18px; border-radius: 8px; cursor: pointer;
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.3px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.04); color: #888;
+    transition: all 0.15s;
+  }
+  .tab:hover  { color: #c9a84c; border-color: rgba(201,168,76,0.25); }
+  .tab.active { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.35); color: #c9a84c; }
+
+  /* Panels */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 1fr 1fr 300px; gap: 24px; max-width: 1260px; margin: 0 auto; }
+  @media (max-width: 900px) { .layout { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 580px) { .layout { grid-template-columns: 1fr; } }
+
+  .card { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 22px; }
+  .card h2 { font-size: 0.85rem; color: #c9a84c; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px; border-bottom: 1px solid rgba(201,168,76,0.12); }
+
+  label { display: block; font-size: 0.8rem; color: #999; margin-bottom: 4px; margin-top: 12px; }
+  input, select, textarea { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.06); color: #fff; font-size: 0.88rem; outline: none; transition: border 0.2s; }
+  input:focus, select:focus, textarea:focus { border-color: #c9a84c; }
+  textarea { resize: vertical; min-height: 64px; }
+  select option { background: #111827; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn { margin-top: 16px; width: 100%; padding: 11px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.92rem; font-weight: 700; transition: all 0.2s; letter-spacing: 0.5px; }
+  .btn-primary { background: linear-gradient(135deg, #c9a84c, #e8c96e); color: #0a0f1e; }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .stats { display: flex; gap: 10px; margin-bottom: 14px; }
+  .stat { flex: 1; text-align: center; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 6px; border: 1px solid rgba(255,255,255,0.06); }
+  .stat-value { font-size: 1.35rem; font-weight: 700; color: #c9a84c; }
+  .stat-label { font-size: 0.68rem; color: #777; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .appointment-list { display: flex; flex-direction: column; gap: 11px; max-height: 460px; overflow-y: auto; }
+  .appointment-list::-webkit-scrollbar { width: 4px; }
+  .appointment-list::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 4px; }
+
+  .appt-card { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; border-left: 4px solid #333; transition: all 0.2s; }
+  .appt-card.pending   { border-left-color: #c9a84c; }
+  .appt-card.confirmed { border-left-color: #4caf8a; }
+  .appt-card.cancelled { border-left-color: #c0392b; opacity: 0.5; }
+  .appt-card.followup  { border-left-color: #5b9bd5; }
+
+  .appt-name   { font-weight: 700; font-size: 0.95rem; color: #fff; }
+  .appt-policy { font-size: 0.72rem; color: #c9a84c; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .appt-meta   { font-size: 0.77rem; color: #888; margin-top: 4px; }
+  .appt-note   { font-size: 0.79rem; color: #bbb; margin-top: 7px; font-style: italic; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 7px; }
+
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 9px; }
+  .badge.pending   { background: rgba(201,168,76,0.15);  color: #c9a84c; }
+  .badge.confirmed { background: rgba(76,175,138,0.15);  color: #4caf8a; }
+  .badge.cancelled { background: rgba(192,57,43,0.15);   color: #c0392b; }
+  .badge.followup  { background: rgba(91,155,213,0.15);  color: #5b9bd5; }
+
+  .appt-actions { display: flex; gap: 7px; margin-top: 10px; flex-wrap: wrap; }
+  .appt-actions button { flex: 1; min-width: 60px; padding: 5px 8px; border: none; border-radius: 6px; font-size: 0.72rem; cursor: pointer; font-weight: 600; transition: all 0.15s; }
+  .btn-confirm  { background: rgba(76,175,138,0.15);  color: #4caf8a;  border: 1px solid #4caf8a; }
+  .btn-confirm:hover  { background: #4caf8a;  color: #000; }
+  .btn-followup { background: rgba(91,155,213,0.15);  color: #5b9bd5;  border: 1px solid #5b9bd5; }
+  .btn-followup:hover { background: #5b9bd5; color: #fff; }
+  .btn-cancel   { background: rgba(192,57,43,0.12);   color: #c0392b;  border: 1px solid #c0392b; }
+  .btn-cancel:hover   { background: #c0392b;  color: #fff; }
+  .btn-delete   { background: rgba(255,255,255,0.04); color: #666; border: 1px solid #333; }
+  .btn-delete:hover   { background: rgba(255,255,255,0.1); color: #aaa; }
+  .btn-dial     { background: rgba(76,175,138,0.12);  color: #3ddc84;  border: 1px solid #3ddc84; }
+  .btn-dial:hover     { background: #3ddc84; color: #000; }
+  .btn-view     { background: rgba(201,168,76,0.1);   color: #c9a84c;  border: 1px solid rgba(201,168,76,0.4); }
+  .btn-view:hover     { background: rgba(201,168,76,0.2); }
+
+  .empty-state { text-align: center; color: #444; padding: 36px 0; font-size: 0.88rem; line-height: 1.8; }
+  .loading-state { text-align: center; color: #555; padding: 32px 0; font-size: 0.88rem; }
+
+  /* ── Dialer ── */
+  .dialer-screen { background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; min-height: 62px; display: flex; flex-direction: column; justify-content: center; }
+  .dialer-contact { font-size: 0.75rem; color: #c9a84c; font-weight: 600; min-height: 16px; margin-bottom: 4px; }
+  .dialer-number  { font-size: 1.35rem; font-weight: 300; color: #fff; letter-spacing: 2px; word-break: break-all; min-height: 28px; }
+  .dialer-status  { font-size: 0.7rem; color: #555; margin-top: 3px; min-height: 14px; }
+  .dialer-status.calling { color: #3ddc84; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .keypad { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+  .key { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 12px 6px 10px; text-align: center; cursor: pointer; user-select: none; transition: all 0.1s; display: flex; flex-direction: column; align-items: center; }
+  .key:hover  { background: rgba(201,168,76,0.12); border-color: rgba(201,168,76,0.3); }
+  .key:active { transform: scale(0.93); }
+  .key-num { font-size: 1.1rem; font-weight: 600; color: #fff; line-height: 1; }
+  .key-sub { font-size: 0.52rem; color: #666; letter-spacing: 1px; margin-top: 2px; min-height: 9px; }
+
+  .dialer-top-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  .btn-backspace { padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; cursor: pointer; font-size: 1rem; color: #aaa; transition: all 0.15s; }
+  .btn-backspace:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .btn-clear-dialer { flex: 1; padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; cursor: pointer; font-size: 0.72rem; color: #555; transition: all 0.15s; }
+  .btn-clear-dialer:hover { color: #aaa; border-color: rgba(255,255,255,0.15); }
+
+  .launch-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .launch-btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 8px; border: none; border-radius: 10px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.15s; }
+  .launch-btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+  .launch-btn-phone  { background: linear-gradient(135deg,#1a6b3a,#25a866); color: #fff; }
+  .launch-btn-skype  { background: linear-gradient(135deg,#0d6da8,#00aff0); color: #fff; }
+  .launch-btn-wa     { background: linear-gradient(135deg,#1a6b2a,#25d366); color: #fff; grid-column: 1 / -1; }
+  .launch-btn-copy   { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #aaa; grid-column: 1 / -1; font-size: 0.75rem; }
+  .launch-btn-copy:hover { color: #fff; }
+
+  .call-log-title { font-size: 0.72rem; color: #666; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .call-log { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+  .call-log::-webkit-scrollbar { width: 3px; }
+  .call-entry { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.03); border-radius: 7px; padding: 7px 9px; cursor: pointer; transition: background 0.15s; }
+  .call-entry:hover { background: rgba(255,255,255,0.07); }
+  .call-icon { font-size: 0.85rem; }
+  .call-info { flex: 1; overflow: hidden; }
+  .call-name { font-size: 0.78rem; color: #ddd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .call-time { font-size: 0.65rem; color: #555; margin-top: 1px; }
+  .call-redial { font-size: 0.65rem; color: #3ddc84; opacity: 0; transition: opacity 0.15s; }
+  .call-entry:hover .call-redial { opacity: 1; }
+  .no-calls { font-size: 0.78rem; color: #444; text-align: center; padding: 12px 0; }
+
+  /* ── Tips ── */
+  .tips-card { grid-column: 1 / -1; }
+  .tips-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(190px,1fr)); gap: 12px; }
+  .tip { background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.1); border-radius: 10px; padding: 14px; font-size: 0.81rem; color: #bbb; line-height: 1.55; }
+  .tip-icon { font-size: 1.3rem; display: block; margin-bottom: 7px; }
+  .tip strong { color: #c9a84c; }
+
+  /* ── Activity Panel ── */
+  .activity-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1260px; margin: 0 auto; }
+  @media (max-width: 680px) { .activity-layout { grid-template-columns: 1fr; } }
+
+  .activity-list { display: flex; flex-direction: column; gap: 8px; max-height: 500px; overflow-y: auto; }
+  .activity-list::-webkit-scrollbar { width: 4px; }
+  .activity-entry { display: flex; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border-left: 3px solid #333; }
+  .activity-entry.appointment { border-left-color: #c9a84c; }
+  .activity-entry.call        { border-left-color: #3ddc84; }
+  .activity-entry.note        { border-left-color: #5b9bd5; }
+  .activity-entry.contact     { border-left-color: #9b59b6; }
+  .activity-icon  { font-size: 1rem; padding-top: 1px; }
+  .activity-desc  { flex: 1; font-size: 0.8rem; color: #ccc; line-height: 1.4; }
+  .activity-time  { font-size: 0.68rem; color: #555; white-space: nowrap; padding-top: 2px; }
+
+  /* ── Prospect Modal ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #111827; border: 1px solid rgba(201,168,76,0.25); border-radius: 16px; width: 100%; max-width: 560px; max-height: 80vh; overflow-y: auto; padding: 28px; }
+  .modal h3 { color: #c9a84c; font-size: 1.1rem; margin-bottom: 4px; }
+  .modal-sub { font-size: 0.8rem; color: #888; margin-bottom: 20px; }
+  .modal-close { float: right; background: none; border: none; color: #666; cursor: pointer; font-size: 1.2rem; }
+  .modal-close:hover { color: #fff; }
+  .notes-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; max-height: 200px; overflow-y: auto; }
+  .note-entry { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 10px 12px; }
+  .note-text { font-size: 0.82rem; color: #ccc; }
+  .note-meta { font-size: 0.68rem; color: #555; margin-top: 4px; }
+  .note-add-row { display: flex; gap: 8px; }
+  .note-add-row input { flex: 1; margin-top: 0; }
+  .btn-add-note { margin-top: 0; width: auto; padding: 9px 16px; flex-shrink: 0; }
+
+  /* ── DB Panel ── */
+  .db-layout { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 16px; max-width: 1260px; margin: 0 auto 24px; }
+  .db-stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.15); border-radius: 12px; padding: 20px; text-align: center; }
+  .db-stat-num  { font-size: 2rem; font-weight: 700; color: #c9a84c; }
+  .db-stat-lbl  { font-size: 0.75rem; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .db-tables    { max-width: 1260px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 680px) { .db-tables { grid-template-columns: 1fr; } }
+  .db-table-card h3 { font-size: 0.85rem; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+  .db-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .db-table th { color: #888; font-weight: 600; padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .db-table td { color: #ccc; padding: 7px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: top; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .db-table tr:hover td { background: rgba(255,255,255,0.03); }
+  .db-refresh { float: right; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); color: #c9a84c; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 0.75rem; }
+  .db-refresh:hover { background: rgba(201,168,76,0.2); }
+
+  /* ── Analytics ── */
+  .analytics-wrap { max-width: 1260px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .analytics-summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .analytics-summary { grid-template-columns: repeat(2,1fr); } }
+  .a-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.15); border-radius: 12px; padding: 18px; text-align: center; }
+  .a-stat-num   { font-size: 2.2rem; font-weight: 700; color: #c9a84c; line-height: 1; }
+  .a-stat-label { font-size: 0.72rem; color: #777; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .analytics-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .analytics-charts-row { grid-template-columns: 1fr; } }
+  .analytics-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.18); border-radius: 14px; padding: 20px; }
+  .analytics-card h2 { font-size: 0.85rem; color: #c9a84c; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .chart-sub  { font-size: 0.74rem; color: #555; margin-bottom: 16px; }
+  .no-chart   { text-align: center; color: #444; padding: 28px 0; font-size: 0.85rem; }
+  .chart-wrap { position: relative; height: 220px; }
+  .chart-wrap-tall { position: relative; height: 260px; }
+
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .period-tabs  { display: flex; gap: 4px; }
+  .period-tab   { padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #777; transition: all 0.15s; }
+  .period-tab.active { background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.4); color: #c9a84c; }
+  .period-tab:hover  { color: #c9a84c; }
+
+  .dial-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 0.68rem; font-weight: 600; background: rgba(91,155,213,0.12); border: 1px solid rgba(91,155,213,0.25); color: #5b9bd5; margin-left: 6px; vertical-align: middle; }
+
+  /* ── Calendar ── */
+  .calendar-wrap     { max-width: 1000px; margin: 0 auto; }
+  .calendar-nav      { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .cal-nav-btn       { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #ccc; font-size: 1.1rem; padding: 7px 20px; cursor: pointer; transition: all 0.15s; }
+  .cal-nav-btn:hover { background: rgba(201,168,76,0.15); border-color: rgba(201,168,76,0.4); color: #c9a84c; }
+  .cal-month-title   { font-size: 1.15rem; font-weight: 700; color: #c9a84c; }
+  .cal-weekdays      { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 4px; }
+  .cal-weekday       { text-align: center; font-size: 0.68rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 0; }
+  .cal-grid          { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-cell          { min-height: 82px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 7px; transition: border-color 0.15s; }
+  .cal-cell:hover    { border-color: rgba(201,168,76,0.2); }
+  .cal-cell.today    { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.06); }
+  .cal-cell.other-month { opacity: 0.3; }
+  .cal-day-num       { font-size: 0.72rem; color: #666; font-weight: 700; margin-bottom: 4px; }
+  .cal-cell.today .cal-day-num { color: #c9a84c; }
+  .cal-appt-chip     { font-size: 0.63rem; border-radius: 4px; padding: 2px 5px; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; line-height: 1.4; display: block; }
+  .cal-appt-chip.confirmed { background: rgba(76,175,138,0.2);  color: #4caf8a; }
+  .cal-appt-chip.pending   { background: rgba(201,168,76,0.2);  color: #c9a84c; }
+  .cal-appt-chip.followup  { background: rgba(91,155,213,0.2);  color: #5b9bd5; }
+  .cal-appt-chip.cancelled { background: rgba(192,57,43,0.15);  color: #c0392b; }
+  @media (max-width: 680px) { .cal-cell { min-height: 52px; } .cal-appt-chip { display: none; } }
+
+  /* ── Team Stats ── */
+  .team-section        { margin-bottom: 20px; }
+  .team-section-hdr    { font-size: 0.78rem; font-weight: 700; color: #c9a84c; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid rgba(201,168,76,0.18); }
+  .team-grid      { display: grid; grid-template-columns: repeat(auto-fill,minmax(185px,1fr)); gap: 12px; }
+  .team-card      { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.15); border-radius: 12px; padding: 16px; }
+  .team-card-name { font-size: 0.88rem; font-weight: 700; color: #fff; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .team-stat-row  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .team-stat-lbl  { font-size: 0.7rem; color: #666; }
+  .team-stat-val  { font-size: 0.78rem; font-weight: 700; color: #c9a84c; }
+  .team-confirmed { color: #4caf8a !important; }
+
+  /* ── Analytics agent filter ── */
+  .analytics-filter-row        { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; padding: 10px 16px; }
+  .analytics-filter-row label  { font-size: 0.8rem; color: #888; margin: 0; white-space: nowrap; }
+  .analytics-filter-row select { width: auto; padding: 6px 10px; margin: 0; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ LOGIN SCREEN ════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">
+      <span class="icon">🛡️</span>
+      <h1>Apex Life Insurance</h1>
+      <p>Staff Portal</p>
+    </div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUsername" placeholder="Enter username" autocomplete="username"
+             onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">Contact your administrator if you have trouble signing in.</div>
+  </div>
+</div>
+
+<header>
+  <span class="brand-icon">🛡️</span>
+  <h1>Apex Life Insurance</h1>
+  <p>Client Appointment Management System</p>
+  <div class="brand-name">Protecting What Matters Most</div>
+  <div class="user-strip">
+    <div class="sync-badge syncing" id="syncBadge">
+      <span class="sync-dot"></span>
+      <span id="syncText">Connecting...</span>
+    </div>
+    <div class="user-pill" id="userPill" style="display:none">
+      👤 <span id="currentUser"></span>
+      <span class="role-badge" id="roleBadge"></span>
+    </div>
+    <button class="logout-btn" id="logoutBtn" style="display:none" onclick="doLogout()">Sign Out</button>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="tabs">
+  <div class="tab active" onclick="showPanel('appointments',event)">📅 Appointments</div>
+  <div class="tab" onclick="showPanel('analytics',event)">📊 Dial Analytics</div>
+  <div class="tab" onclick="showPanel('calendar',event)">📆 Calendar</div>
+  <div class="tab admin-only" onclick="showPanel('activity',event)" style="display:none">📋 Activity Log</div>
+  <div class="tab admin-only" onclick="showPanel('database',event)" style="display:none">🗄️ Database</div>
+</div>
+
+<!-- ═══════════════════════════════ APPOINTMENTS PANEL ═══════════════════════ -->
+<div id="panel-appointments" class="panel active">
+  <div class="layout">
+
+    <!-- Book -->
+    <div class="card">
+      <h2>📋 Book Consultation</h2>
+      <div class="form-row">
+        <div><label>First Name</label><input type="text" id="firstName" placeholder="John"></div>
+        <div><label>Last Name</label><input type="text" id="lastName" placeholder="Smith"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Phone</label><input type="tel" id="phone" placeholder="+972 50 000 0000"></div>
+        <div><label>Email</label><input type="email" id="email" placeholder="john@email.com"></div>
+      </div>
+      <label>Policy Type</label>
+      <select id="policyType">
+        <option>Term Life Insurance</option>
+        <option>Whole Life Insurance</option>
+        <option>Universal Life Insurance</option>
+        <option>Variable Life Insurance</option>
+        <option>Critical Illness Cover</option>
+        <option>Mortgage Life Insurance</option>
+        <option>Group Life Insurance</option>
+        <option>Policy Review &amp; Update</option>
+        <option>Claims Consultation</option>
+      </select>
+      <div class="form-row">
+        <div><label>Date &amp; Time</label><input type="datetime-local" id="apptDate"></div>
+        <div>
+          <label>Agent</label>
+          <select id="agent">
+            <option>David Cohen</option><option>Sarah Levi</option>
+            <option>Michael Roth</option><option>Noa Shapiro</option>
+            <option>Unassigned</option>
+          </select>
+        </div>
+      </div>
+      <label>Meeting Type</label>
+      <select id="meetingType">
+        <option>In-Office</option><option>Video Call</option>
+        <option>Phone Call</option><option>Home Visit</option>
+      </select>
+      <label>Notes</label>
+      <textarea id="notes" placeholder="Client concerns, coverage amount, referral source..."></textarea>
+      <button id="bookBtn" class="btn btn-primary" onclick="addAppointment()">Book Appointment</button>
+    </div>
+
+    <!-- List -->
+    <div class="card">
+      <h2>📅 Appointments</h2>
+      <div class="stats">
+        <div class="stat"><div class="stat-value" id="statTotal">–</div><div class="stat-label">Total</div></div>
+        <div class="stat"><div class="stat-value" id="statPending">–</div><div class="stat-label">Pending</div></div>
+        <div class="stat"><div class="stat-value" id="statConfirmed">–</div><div class="stat-label">Confirmed</div></div>
+        <div class="stat"><div class="stat-value" id="statFollowup">–</div><div class="stat-label">Follow-up</div></div>
+      </div>
+      <div class="appointment-list" id="appointmentList">
+        <div class="loading-state">Connecting to cloud database...</div>
+      </div>
+    </div>
+
+    <!-- Dialer -->
+    <div class="card">
+      <h2>📞 Dialer</h2>
+      <div class="dialer-screen">
+        <div class="dialer-contact" id="dialerContact"></div>
+        <div class="dialer-number"  id="dialerNumber">&#8203;</div>
+        <div class="dialer-status"  id="dialerStatus"></div>
+      </div>
+      <div class="keypad">
+        <div class="key" onclick="dialPress('1')"><div class="key-num">1</div><div class="key-sub"></div></div>
+        <div class="key" onclick="dialPress('2')"><div class="key-num">2</div><div class="key-sub">ABC</div></div>
+        <div class="key" onclick="dialPress('3')"><div class="key-num">3</div><div class="key-sub">DEF</div></div>
+        <div class="key" onclick="dialPress('4')"><div class="key-num">4</div><div class="key-sub">GHI</div></div>
+        <div class="key" onclick="dialPress('5')"><div class="key-num">5</div><div class="key-sub">JKL</div></div>
+        <div class="key" onclick="dialPress('6')"><div class="key-num">6</div><div class="key-sub">MNO</div></div>
+        <div class="key" onclick="dialPress('7')"><div class="key-num">7</div><div class="key-sub">PQRS</div></div>
+        <div class="key" onclick="dialPress('8')"><div class="key-num">8</div><div class="key-sub">TUV</div></div>
+        <div class="key" onclick="dialPress('9')"><div class="key-num">9</div><div class="key-sub">WXYZ</div></div>
+        <div class="key" onclick="dialPress('*')"><div class="key-num">*</div><div class="key-sub"></div></div>
+        <div class="key" onclick="dialPress('0')"><div class="key-num">0</div><div class="key-sub">+</div></div>
+        <div class="key" onclick="dialPress('#')"><div class="key-num">#</div><div class="key-sub"></div></div>
+      </div>
+      <div class="dialer-top-row">
+        <button class="btn-clear-dialer" onclick="clearDialer()">CLR</button>
+        <button class="btn-backspace" onclick="dialBackspace()">⌫</button>
+      </div>
+      <div class="launch-buttons">
+        <button class="launch-btn launch-btn-phone"  onclick="launchCall('tel')">📱 Phone</button>
+        <button class="launch-btn launch-btn-skype"  onclick="launchCall('skype')">💬 Skype</button>
+        <button class="launch-btn launch-btn-wa"     onclick="launchCall('whatsapp')">💚 WhatsApp</button>
+        <button class="launch-btn launch-btn-copy"   onclick="copyNumber()">📋 Copy Number</button>
+      </div>
+      <div class="call-log-title">Recent Calls</div>
+      <div class="call-log" id="callLog"><div class="no-calls">No recent calls</div></div>
+    </div>
+
+    <!-- Tips -->
+    <div class="card tips-card">
+      <h2>💡 Life Insurance Guidance for Clients</h2>
+      <div class="tips-grid">
+        <div class="tip"><span class="tip-icon">📅</span><strong>Buy young, pay less.</strong> Premiums are lowest in your 20s–30s. A 30-year-old pays up to 50% less than a 45-year-old for the same coverage.</div>
+        <div class="tip"><span class="tip-icon">🔢</span><strong>Coverage rule of thumb:</strong> Aim for 10–12× your annual income. Factor in debts, dependants, and mortgage balance.</div>
+        <div class="tip"><span class="tip-icon">📄</span><strong>Review annually.</strong> Major life events — marriage, new child, home purchase — are all triggers to reassess your policy level.</div>
+        <div class="tip"><span class="tip-icon">🏥</span><strong>Pair with critical illness.</strong> Life insurance covers death; critical illness covers surviving a major diagnosis. Together they close the gap.</div>
+        <div class="tip"><span class="tip-icon">💼</span><strong>Check employer cover first.</strong> Many employers offer group life insurance. Know what you already have before topping up.</div>
+        <div class="tip"><span class="tip-icon">📝</span><strong>Nominate beneficiaries.</strong> Always keep beneficiary details up to date — outdated nominations cause costly delays at claims time.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ANALYTICS PANEL ══════════════════════════ -->
+<div id="panel-analytics" class="panel">
+  <div class="analytics-wrap">
+
+    <!-- Analytics scope/agent filter -->
+    <div class="analytics-filter-row" id="agentFilterRow">
+      <label id="agentFilterLabel">📊 View:</label>
+      <select id="agentFilter" onchange="refreshAnalytics()">
+        <option value="">My Stats</option>
+      </select>
+    </div>
+
+    <!-- Summary -->
+    <div class="analytics-summary">
+      <div class="a-stat"><div class="a-stat-num" id="a-today">–</div><div class="a-stat-label">Today</div></div>
+      <div class="a-stat"><div class="a-stat-num" id="a-week">–</div><div class="a-stat-label">This Week</div></div>
+      <div class="a-stat"><div class="a-stat-num" id="a-month">–</div><div class="a-stat-label">This Month</div></div>
+      <div class="a-stat"><div class="a-stat-num" id="a-year">–</div><div class="a-stat-label">This Year</div></div>
+      <div class="a-stat"><div class="a-stat-num" id="a-total">–</div><div class="a-stat-label">All Time</div></div>
+    </div>
+
+    <!-- Top row: per-prospect + dials-to-confirm -->
+    <div class="analytics-charts-row">
+      <div class="analytics-card">
+        <h2>👤 Dials Per Prospect</h2>
+        <div class="chart-sub">Total call attempts per client (top 10)</div>
+        <div class="chart-wrap-tall" id="wrapProspect">
+          <canvas id="chartProspect"></canvas>
+          <div class="no-chart" id="noProspect" style="display:none">No dials logged yet.</div>
+        </div>
+      </div>
+      <div class="analytics-card">
+        <h2>✅ Dials to Confirmation</h2>
+        <div class="chart-sub">How many calls it took before prospect confirmed</div>
+        <div class="chart-wrap-tall" id="wrapConfirm">
+          <canvas id="chartConfirm"></canvas>
+          <div class="no-chart" id="noConfirm" style="display:none">No confirmed prospects with call data yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Full-width: dials over time -->
+    <div class="analytics-card">
+      <div class="chart-header">
+        <div>
+          <h2>📈 Dials Over Time</h2>
+          <div class="chart-sub">Total outbound dials per period</div>
+        </div>
+        <div class="period-tabs">
+          <button class="period-tab active" onclick="setTimePeriod('day',this)">30 Days</button>
+          <button class="period-tab" onclick="setTimePeriod('week',this)">12 Weeks</button>
+          <button class="period-tab" onclick="setTimePeriod('month',this)">12 Months</button>
+          <button class="period-tab" onclick="setTimePeriod('year',this)">5 Years</button>
+        </div>
+      </div>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="chartTime"></canvas>
+      </div>
+    </div>
+
+    <!-- Team overview (admin only) -->
+    <div class="analytics-card admin-only" id="teamStatsCard" style="display:none">
+      <h2>👥 Team Overview</h2>
+      <div class="chart-sub">All agents — today's dials &amp; appointment performance</div>
+      <div id="teamStatsGrid">
+        <div class="loading-state">Loading team stats...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CALENDAR PANEL ════════════════════════════ -->
+<div id="panel-calendar" class="panel">
+  <div class="calendar-wrap">
+    <div class="card">
+      <div class="calendar-nav">
+        <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
+        <span class="cal-month-title" id="calMonthTitle"></span>
+        <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+      </div>
+      <div class="cal-weekdays">
+        <div class="cal-weekday">Sun</div><div class="cal-weekday">Mon</div>
+        <div class="cal-weekday">Tue</div><div class="cal-weekday">Wed</div>
+        <div class="cal-weekday">Thu</div><div class="cal-weekday">Fri</div>
+        <div class="cal-weekday">Sat</div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ACTIVITY PANEL ═══════════════════════════ -->
+<div id="panel-activity" class="panel">
+  <div class="activity-layout">
+    <div class="card">
+      <h2>📋 Activity Log <button class="db-refresh" onclick="refreshActivity()">↺ Refresh</button></h2>
+      <div class="activity-list" id="activityList">
+        <div class="loading-state">Loading...</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📞 Call Log <button class="db-refresh" onclick="clearCallLogs()">🗑 Clear</button></h2>
+      <div class="activity-list" id="callLogFull">
+        <div class="loading-state">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DATABASE PANEL ══════════════════════════ -->
+<div id="panel-database" class="panel">
+  <div class="db-layout" id="dbStats">
+    <div class="db-stat-card"><div class="db-stat-num" id="db-total">–</div><div class="db-stat-lbl">Appointments</div></div>
+    <div class="db-stat-card"><div class="db-stat-num" id="db-confirmed">–</div><div class="db-stat-lbl">Confirmed</div></div>
+    <div class="db-stat-card"><div class="db-stat-num" id="db-pending">–</div><div class="db-stat-lbl">Pending</div></div>
+    <div class="db-stat-card"><div class="db-stat-num" id="db-cancelled">–</div><div class="db-stat-lbl">Cancelled</div></div>
+    <div class="db-stat-card"><div class="db-stat-num" id="db-calls">–</div><div class="db-stat-lbl">Total Calls</div></div>
+    <div class="db-stat-card"><div class="db-stat-num" id="db-contacts">–</div><div class="db-stat-lbl">Contacts</div></div>
+  </div>
+  <div class="db-tables">
+    <div class="card db-table-card">
+      <h3>Appointments Table <button class="db-refresh" onclick="refreshDatabase()">↺</button></h3>
+      <div style="overflow-x:auto"><table class="db-table" id="dbApptTable">
+        <thead><tr><th>ID</th><th>Name</th><th>Policy</th><th>Date</th><th>Agent</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="card db-table-card">
+      <h3>Call Logs Table <button class="db-refresh" onclick="refreshDatabase()">↺</button></h3>
+      <div style="overflow-x:auto"><table class="db-table" id="dbCallTable">
+        <thead><tr><th>ID</th><th>Number</th><th>Contact</th><th>Via</th><th>Time</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PROSPECT MODAL ══════════════════════════ -->
+<div class="modal-overlay" id="prospectModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modalName">–</h3>
+    <div class="modal-sub" id="modalSub">–</div>
+    <div style="font-size:0.82rem;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Prospect Notes</div>
+    <div class="notes-list" id="modalNotes"></div>
+    <div class="note-add-row">
+      <input type="text" id="noteInput" placeholder="Add a note..." onkeydown="if(event.key==='Enter')addNote()">
+      <button class="btn btn-primary btn-add-note" onclick="addNote()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API   = '/api';
+  const state = { appointments: [], callLogs: [], currentProspect: null, token: null, user: null, dialerProspectId: null };
+  const charts = {};
+  let   analyticsData     = null;
+  let   currentTimePeriod = 'day';
+  const calState          = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+  const meetingIcons = { 'In-Office':'🏢','Video Call':'💻','Phone Call':'📞','Home Visit':'🏠' };
+  const appVia       = { tel:'📱 Phone', skype:'💬 Skype', whatsapp:'💚 WhatsApp' };
+
+  // ── API ────────────────────────────────────────────────────────────────────
+  async function api(method, path, body) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (state.token) opts.headers['X-Token'] = state.token;
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(API + path, opts);
+    if (r.status === 401) { showLoginScreen(); throw new Error('Session expired'); }
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return method === 'DELETE' ? null : r.json();
+  }
+
+  // ── Sync badge ─────────────────────────────────────────────────────────────
+  function setSyncStatus(s) {
+    const badge = document.getElementById('syncBadge');
+    const text  = document.getElementById('syncText');
+    badge.className = `sync-badge ${s}`;
+    if (s === 'ok')      text.textContent = 'Cloud DB connected';
+    if (s === 'syncing') text.textContent = 'Syncing...';
+    if (s === 'error')   text.textContent = 'Cloud DB offline';
+  }
+
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  let analyticsPoller = null;
+
+  function showPanel(name, evt) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    if (evt && evt.target) evt.target.classList.add('active');
+
+    // Stop any existing analytics poll when leaving the tab
+    if (analyticsPoller) { clearInterval(analyticsPoller); analyticsPoller = null; }
+
+    if (name === 'analytics') {
+      refreshAnalytics();
+      // Poll every 15 seconds while the tab is open
+      analyticsPoller = setInterval(refreshAnalytics, 15000);
+    }
+    if (name === 'activity')  { refreshActivity(); refreshCallLogFull(); }
+    if (name === 'database')  refreshDatabase();
+    if (name === 'calendar')  renderCalendar();
+  }
+
+  // ── Auth ───────────────────────────────────────────────────────────────────
+  function showLoginScreen() {
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginError').textContent = '';
+  }
+  function hideLoginScreen() {
+    document.getElementById('loginScreen').classList.add('hidden');
+  }
+
+  async function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const btn      = document.getElementById('loginBtn');
+    const errEl    = document.getElementById('loginError');
+    if (!username || !password) { errEl.textContent = 'Please enter username and password.'; return; }
+    btn.disabled = true; btn.textContent = 'Signing in...';
+    errEl.textContent = '';
+    try {
+      const r = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await r.json();
+      if (!r.ok) { errEl.textContent = data.error || 'Login failed.'; return; }
+      state.token = data.token;
+      state.user  = { role: data.role, name: data.name, username: data.username, team: data.team || null };
+      sessionStorage.setItem('apex_token', data.token);
+      hideLoginScreen();
+      applyRoleUI();
+      init();
+    } catch(e) {
+      errEl.textContent = 'Could not connect to server.';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Sign In';
+    }
+  }
+
+  async function doLogout() {
+    if (analyticsPoller) { clearInterval(analyticsPoller); analyticsPoller = null; }
+    try { await api('POST', '/logout'); } catch(e) { /* ignore */ }
+    state.token = null;
+    state.user  = null;
+    sessionStorage.removeItem('apex_token');
+    showLoginScreen();
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('userPill').style.display  = 'none';
+    document.getElementById('logoutBtn').style.display = 'none';
+  }
+
+  async function applyRoleUI() {
+    const isAdmin = state.user && state.user.role === 'admin';
+    document.querySelectorAll('.admin-only').forEach(el => { el.style.display = isAdmin ? '' : 'none'; });
+    document.getElementById('currentUser').textContent = state.user ? state.user.name : '';
+    const rb = document.getElementById('roleBadge');
+    rb.textContent  = state.user ? state.user.role : '';
+    rb.className    = `role-badge ${state.user ? state.user.role : ''}`;
+    document.getElementById('userPill').style.display  = 'inline-flex';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    if (!isAdmin && state.user) {
+      const agentSelect = document.getElementById('agent');
+      if (agentSelect) {
+        for (let opt of agentSelect.options) {
+          if (opt.value === state.user.name) { agentSelect.value = state.user.name; break; }
+        }
+        agentSelect.disabled = true;
+      }
+    }
+    const filterSel = document.getElementById('agentFilter');
+    const filterLbl = document.getElementById('agentFilterLabel');
+    if (filterSel) {
+      if (isAdmin) {
+        if (filterLbl) filterLbl.textContent = '🔍 Filter by Agent:';
+        try {
+          const users = await api('GET', '/users');
+          filterSel.innerHTML = '<option value="">All Agents</option>' +
+            users.filter(u => u.role === 'agent')
+              .map(u => `<option value="${esc(u.username)}">${esc(u.name)}</option>`)
+              .join('');
+        } catch(e) {}
+      } else {
+        if (filterLbl) filterLbl.textContent = '📊 View:';
+        // Build team label from users on same team so it shows "David's Team" etc.
+        let teamLabel = 'My Team';
+        try {
+          const users = await api('GET', '/users');
+          const teammates = users.filter(u => u.role === 'agent' && u.team === state.user.team);
+          if (teammates.length) teamLabel = `My Team (${teammates.map(u => u.name.split(' ')[0]).join(' & ')})`;
+        } catch(e) {}
+        filterSel.innerHTML =
+          '<option value="">My Stats</option>' +
+          `<option value="team">${esc(teamLabel)}</option>` +
+          '<option value="company">All Company</option>';
+      }
+    }
+  }
+
+  // ── Session restore on load ────────────────────────────────────────────────
+  async function checkSession() {
+    const token = sessionStorage.getItem('apex_token');
+    if (token) {
+      try {
+        const r = await fetch('/api/me', { headers: { 'X-Token': token } });
+        if (r.ok) {
+          const data  = await r.json();
+          state.token = token;
+          state.user  = data;
+          hideLoginScreen();
+          applyRoleUI();
+          init();
+          return;
+        }
+      } catch(e) {}
+    }
+    showLoginScreen();
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  async function init() {
+    setSyncStatus('syncing');
+    try {
+      [state.appointments, state.callLogs] = await Promise.all([
+        api('GET', '/appointments'),
+        api('GET', '/call-logs'),
+      ]);
+      renderList();
+      renderCallLog();
+      setSyncStatus('ok');
+    } catch (e) {
+      if (e.message !== 'Session expired') {
+        setSyncStatus('error');
+        document.getElementById('appointmentList').innerHTML =
+          '<div class="empty-state">⚠️<br>Could not connect to cloud database.<br>Make sure the server is running on port 3000.</div>';
+      }
+    }
+  }
+
+  // ── Appointments ───────────────────────────────────────────────────────────
+  async function addAppointment() {
+    const get = id => document.getElementById(id).value.trim();
+    const firstName = get('firstName'), lastName = get('lastName'), date = get('apptDate');
+    if (!firstName || !lastName || !date) { alert('Please fill in name and date.'); return; }
+    const btn = document.getElementById('bookBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    setSyncStatus('syncing');
+    try {
+      const appt = await api('POST', '/appointments', {
+        firstName, lastName,
+        phone:       get('phone'),
+        email:       get('email'),
+        policyType:  document.getElementById('policyType').value,
+        date,
+        agent:       document.getElementById('agent').value,
+        meetingType: document.getElementById('meetingType').value,
+        notes:       get('notes'),
+      });
+      state.appointments.push(appt);
+      state.appointments.sort((a,b) => new Date(a.date) - new Date(b.date));
+      renderList();
+      setSyncStatus('ok');
+      ['firstName','lastName','phone','email','apptDate','notes'].forEach(id => document.getElementById(id).value = '');
+    } catch(e) {
+      alert('Save failed: ' + e.message);
+      setSyncStatus('error');
+    }
+    btn.disabled = false; btn.textContent = 'Book Appointment';
+  }
+
+  async function setStatus(id, status) {
+    setSyncStatus('syncing');
+    try {
+      await api('PUT', `/appointments/${id}`, { status });
+      state.appointments = state.appointments.map(a => a.id === id ? {...a, status} : a);
+      renderList();
+      setSyncStatus('ok');
+    } catch(e) { setSyncStatus('error'); }
+  }
+
+  async function deleteAppointment(id) {
+    if (!confirm('Delete this appointment?')) return;
+    setSyncStatus('syncing');
+    try {
+      await api('DELETE', `/appointments/${id}`);
+      state.appointments = state.appointments.filter(a => a.id !== id);
+      renderList();
+      setSyncStatus('ok');
+    } catch(e) { setSyncStatus('error'); }
+  }
+
+  function renderList() {
+    const list = state.appointments;
+    const el   = document.getElementById('appointmentList');
+    document.getElementById('statTotal').textContent     = list.length;
+    document.getElementById('statPending').textContent   = list.filter(a=>a.status==='pending').length;
+    document.getElementById('statConfirmed').textContent = list.filter(a=>a.status==='confirmed').length;
+    document.getElementById('statFollowup').textContent  = list.filter(a=>a.status==='followup').length;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-state">🛡️<br>No appointments yet.<br>Add a client consultation to get started.</div>';
+      return;
+    }
+    el.innerHTML = list.map(a => {
+      const dials = state.callLogs.filter(c =>
+        c.appointmentId === a.id ||
+        (!c.appointmentId && c.contactName === `${a.firstName} ${a.lastName}`)
+      ).length;
+      return `
+      <div class="appt-card ${a.status}">
+        <div class="appt-name">
+          ${esc(a.firstName)} ${esc(a.lastName)}
+          ${dials > 0 ? `<span class="dial-badge">📞 ${dials} dial${dials !== 1 ? 's' : ''}</span>` : ''}
+        </div>
+        <div class="appt-policy">${esc(a.policyType)}</div>
+        <div class="appt-meta">📅 ${formatDate(a.date)}</div>
+        <div class="appt-meta">${meetingIcons[a.meetingType]||'📍'} ${esc(a.meetingType)} · 👤 ${esc(a.agent)}</div>
+        ${a.phone ? `<div class="appt-meta">📞 ${esc(a.phone)}${a.email?` · ✉️ ${esc(a.email)}`:''}</div>` : ''}
+        ${a.notes ? `<div class="appt-note">"${esc(a.notes)}"</div>` : ''}
+        <span class="badge ${a.status}">${a.status==='followup'?'Follow-up':a.status}</span>
+        <div class="appt-actions">
+          ${a.phone ? `<button class="btn-dial"     onclick="dialClient(${j(a.phone)},${j(a.firstName+' '+a.lastName)},${a.id})">📞 Dial</button>` : ''}
+          <button class="btn-view"     onclick="openProspect(${a.id})">📄 Notes</button>
+          ${a.status!=='confirmed' ? `<button class="btn-confirm"  onclick="setStatus(${a.id},'confirmed')">✓ Confirm</button>` : ''}
+          ${a.status!=='followup'  ? `<button class="btn-followup" onclick="setStatus(${a.id},'followup')">↩ Follow-up</button>` : ''}
+          ${a.status!=='cancelled' ? `<button class="btn-cancel"   onclick="setStatus(${a.id},'cancelled')">✕ Cancel</button>` : ''}
+          <button class="btn-delete"   onclick="deleteAppointment(${a.id})">🗑</button>
+        </div>
+      </div>`;
+    }).join('');
+    if (document.getElementById('calGrid')) renderCalendar();
+  }
+
+  // ── Prospect Notes Modal ───────────────────────────────────────────────────
+  async function openProspect(id) {
+    const a = state.appointments.find(x => x.id === id);
+    if (!a) return;
+    state.currentProspect = id;
+    document.getElementById('modalName').textContent = `${a.firstName} ${a.lastName}`;
+    document.getElementById('modalSub').textContent  = `${a.policyType} · ${a.agent}`;
+    document.getElementById('prospectModal').classList.add('open');
+    await loadNotes(id);
+  }
+
+  function closeModal() {
+    document.getElementById('prospectModal').classList.remove('open');
+    state.currentProspect = null;
+  }
+
+  async function loadNotes(id) {
+    const notes = await api('GET', `/appointments/${id}/notes`);
+    const el    = document.getElementById('modalNotes');
+    if (!notes.length) { el.innerHTML = '<div style="color:#555;font-size:0.8rem;text-align:center;padding:12px">No notes yet.</div>'; return; }
+    el.innerHTML = notes.map(n => `
+      <div class="note-entry">
+        <div class="note-text">${esc(n.content)}</div>
+        <div class="note-meta">${timeAgo(n.createdAt)}</div>
+      </div>`).join('');
+  }
+
+  async function addNote() {
+    const input   = document.getElementById('noteInput');
+    const content = input.value.trim();
+    if (!content || !state.currentProspect) return;
+    await api('POST', `/appointments/${state.currentProspect}/notes`, { content });
+    input.value = '';
+    await loadNotes(state.currentProspect);
+  }
+
+  // ── Call Logs ──────────────────────────────────────────────────────────────
+  async function logCall(number, contactName, via, appointmentId = null) {
+    try {
+      const entry = await api('POST', '/call-logs', { number, contactName, via, appointmentId });
+      state.callLogs.unshift(entry);
+      state.callLogs = state.callLogs.slice(0, 30);
+      renderCallLog();
+      renderList(); // refresh dial badges on appointment cards immediately
+      // If analytics tab is open, refresh it instantly
+      if (document.getElementById('panel-analytics').classList.contains('active')) {
+        refreshAnalytics();
+      }
+    } catch(e) { /* silent */ }
+  }
+
+  function renderCallLog() {
+    const el  = document.getElementById('callLog');
+    const log = state.callLogs;
+    if (!log.length) { el.innerHTML = '<div class="no-calls">No recent calls</div>'; return; }
+    el.innerHTML = log.map(c => `
+      <div class="call-entry" onclick="dialClient(${j(c.number)},${j(c.contactName||c.number)})">
+        <span class="call-icon">📞</span>
+        <div class="call-info">
+          <div class="call-name">${esc(c.contactName||c.number)}</div>
+          <div class="call-time">${timeAgo(c.createdAt)} · ${appVia[c.via]||esc(c.via||'')}</div>
+        </div>
+        <span class="call-redial">Redial ↩</span>
+      </div>`).join('');
+  }
+
+  // ── Activity ───────────────────────────────────────────────────────────────
+  async function refreshActivity() {
+    const el = document.getElementById('activityList');
+    el.innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      const log = await api('GET', '/activity');
+      if (!log.length) { el.innerHTML = '<div class="empty-state">No activity yet.</div>'; return; }
+      const typeClass = t => t.startsWith('call') ? 'call' : t.startsWith('note') ? 'note' : t.startsWith('contact') ? 'contact' : 'appointment';
+      const typeIcon  = t => t.startsWith('call') ? '📞' : t.startsWith('note') ? '📝' : t.startsWith('contact') ? '👤' : '📋';
+      el.innerHTML = log.map(e => `
+        <div class="activity-entry ${typeClass(e.type)}">
+          <span class="activity-icon">${typeIcon(e.type)}</span>
+          <span class="activity-desc">${esc(e.description)}</span>
+          <span class="activity-time">${timeAgo(e.createdAt)}</span>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Failed to load activity.</div>'; }
+  }
+
+  async function refreshCallLogFull() {
+    const el = document.getElementById('callLogFull');
+    try {
+      const log = await api('GET', '/call-logs');
+      if (!log.length) { el.innerHTML = '<div class="empty-state">No calls logged.</div>'; return; }
+      el.innerHTML = log.map(c => `
+        <div class="activity-entry call">
+          <span class="activity-icon">📞</span>
+          <span class="activity-desc">${esc(c.contactName||c.number)} via ${appVia[c.via]||esc(c.via||'')}</span>
+          <span class="activity-time">${timeAgo(c.createdAt)}</span>
+        </div>`).join('');
+    } catch(e) { el.innerHTML = '<div class="empty-state">Failed to load.</div>'; }
+  }
+
+  async function clearCallLogs() {
+    if (!confirm('Clear all call logs?')) return;
+    await api('DELETE', '/call-logs');
+    state.callLogs = [];
+    renderCallLog();
+    refreshCallLogFull();
+  }
+
+  // ── Database Panel ─────────────────────────────────────────────────────────
+  async function refreshDatabase() {
+    try {
+      const [stats, appts, calls] = await Promise.all([
+        api('GET', '/stats'),
+        api('GET', '/appointments'),
+        api('GET', '/call-logs'),
+      ]);
+      document.getElementById('db-total').textContent     = stats.total;
+      document.getElementById('db-confirmed').textContent = stats.confirmed;
+      document.getElementById('db-pending').textContent   = stats.pending;
+      document.getElementById('db-cancelled').textContent = stats.cancelled;
+      document.getElementById('db-calls').textContent     = stats.calls;
+      document.getElementById('db-contacts').textContent  = stats.contacts;
+
+      const apptBody = document.querySelector('#dbApptTable tbody');
+      apptBody.innerHTML = appts.map(a => `
+        <tr>
+          <td>${a.id}</td>
+          <td>${esc(a.firstName)} ${esc(a.lastName)}</td>
+          <td>${esc(a.policyType)}</td>
+          <td>${a.date ? new Date(a.date).toLocaleDateString('en-GB') : '–'}</td>
+          <td>${esc(a.agent)}</td>
+          <td><span class="badge ${a.status}" style="margin:0">${a.status}</span></td>
+        </tr>`).join('') || '<tr><td colspan="6" style="color:#555;text-align:center;padding:12px">No records</td></tr>';
+
+      const callBody = document.querySelector('#dbCallTable tbody');
+      callBody.innerHTML = calls.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td>${esc(c.number)}</td>
+          <td>${esc(c.contactName||'–')}</td>
+          <td>${appVia[c.via]||esc(c.via||'–')}</td>
+          <td>${timeAgo(c.createdAt)}</td>
+        </tr>`).join('') || '<tr><td colspan="5" style="color:#555;text-align:center;padding:12px">No records</td></tr>';
+    } catch(e) { console.error(e); }
+  }
+
+  // ── Dialer ─────────────────────────────────────────────────────────────────
+  function getNum() { return document.getElementById('dialerNumber').textContent.replace(/​/g,'').trim(); }
+
+  function dialPress(char) {
+    const el = document.getElementById('dialerNumber');
+    el.textContent = (el.textContent.replace(/​/g,'') + char);
+    matchContact();
+  }
+  function dialBackspace() {
+    const el  = document.getElementById('dialerNumber');
+    const cur = el.textContent.replace(/​/g,'');
+    el.textContent = cur.slice(0,-1) || '​';
+    matchContact();
+  }
+  function clearDialer() {
+    document.getElementById('dialerNumber').textContent  = '​';
+    document.getElementById('dialerContact').textContent = '';
+    document.getElementById('dialerStatus').textContent  = '';
+    state.dialerProspectId = null;
+  }
+  function matchContact() {
+    const num   = getNum().replace(/\s/g,'');
+    const match = num.length >= 5 && state.appointments.find(a => a.phone && a.phone.replace(/\s/g,'').includes(num));
+    document.getElementById('dialerContact').textContent = match ? `${match.firstName} ${match.lastName}` : '';
+    state.dialerProspectId = match ? match.id : null;
+  }
+  function dialClient(phone, name, appointmentId = null) {
+    document.getElementById('dialerNumber').textContent  = phone;
+    document.getElementById('dialerContact').textContent = name;
+    document.getElementById('dialerStatus').textContent  = '';
+    state.dialerProspectId = appointmentId;
+    document.getElementById('panel-appointments').scrollIntoView({ behavior:'smooth' });
+  }
+  function launchCall(type) {
+    const num     = getNum();
+    const contact = document.getElementById('dialerContact').textContent;
+    const statusEl = document.getElementById('dialerStatus');
+    if (!num) { statusEl.textContent = 'Enter a number first'; return; }
+    const clean = num.replace(/[\s\-().]/g,'');
+    if      (type === 'tel')      window.open('tel:' + clean, '_self');
+    else if (type === 'skype')    window.open('callto:' + clean, '_blank');
+    else if (type === 'whatsapp') window.open('https://wa.me/' + clean.replace(/^\+/,''), '_blank');
+    statusEl.className = 'dialer-status calling';
+    statusEl.textContent = 'Opening…';
+    logCall(num, contact, type, state.dialerProspectId);
+    setTimeout(() => { statusEl.className = 'dialer-status'; statusEl.textContent = ''; }, 3000);
+  }
+  function copyNumber() {
+    const num = getNum();
+    const statusEl = document.getElementById('dialerStatus');
+    if (!num) { statusEl.textContent = 'Nothing to copy'; return; }
+    navigator.clipboard.writeText(num).then(() => {
+      statusEl.className = 'dialer-status calling';
+      statusEl.textContent = 'Copied ✓';
+      setTimeout(() => { statusEl.className = 'dialer-status'; statusEl.textContent = ''; }, 2000);
+    });
+  }
+
+  // ── Analytics ─────────────────────────────────────────────────────────────
+  async function refreshAnalytics() {
+    try {
+      const isAdmin  = state.user && state.user.role === 'admin';
+      const filterVal = document.getElementById('agentFilter')?.value || '';
+      let   path      = '/analytics';
+      if (isAdmin && filterVal) {
+        path = `/analytics?agent=${encodeURIComponent(filterVal)}`;
+      } else if (!isAdmin && filterVal === 'team') {
+        path = '/analytics?scope=team';
+      } else if (!isAdmin && filterVal === 'company') {
+        path = '/analytics?scope=company';
+      }
+      analyticsData = await api('GET', path);
+      renderAnalyticsSummary();
+      renderChartProspect();
+      renderChartConfirm();
+      renderChartTime(currentTimePeriod);
+      if (isAdmin) refreshTeamStats();
+    } catch(e) { console.error('Analytics error', e); }
+  }
+
+  function renderAnalyticsSummary() {
+    const s = analyticsData.summary;
+    document.getElementById('a-today').textContent = s.today;
+    document.getElementById('a-week').textContent  = s.week;
+    document.getElementById('a-month').textContent = s.month;
+    document.getElementById('a-year').textContent  = s.year;
+    document.getElementById('a-total').textContent = s.total;
+  }
+
+  const CHART_DEFAULTS = {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#1a2340', titleColor: '#c9a84c', bodyColor: '#ccc',
+      borderColor: 'rgba(201,168,76,0.3)', borderWidth: 1, padding: 10,
+    }},
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+      y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888', stepSize: 1, precision: 0 } },
+    }
+  };
+
+  function mkChart(id, type, labels, data, color, indexAxis) {
+    const canvas = document.getElementById(id);
+    if (charts[id]) charts[id].destroy();
+    charts[id] = new Chart(canvas, {
+      type,
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: color + 'b3', borderColor: color, borderWidth: 1, borderRadius: 5 }]
+      },
+      options: {
+        ...CHART_DEFAULTS,
+        ...(indexAxis ? { indexAxis } : {}),
+        scales: {
+          x: { ...CHART_DEFAULTS.scales.x, ticks: { color: '#888', maxRotation: indexAxis === 'y' ? 0 : 40 } },
+          y: { ...CHART_DEFAULTS.scales.y },
+        }
+      }
+    });
+  }
+
+  function renderChartProspect() {
+    const d = analyticsData.perProspect.slice(0, 10);
+    const noEl = document.getElementById('noProspect');
+    if (!d.length) { noEl.style.display = 'block'; document.getElementById('chartProspect').style.display = 'none'; return; }
+    noEl.style.display = 'none'; document.getElementById('chartProspect').style.display = 'block';
+    const statusColor = { confirmed: '#4caf8a', pending: '#c9a84c', followup: '#5b9bd5', cancelled: '#c0392b' };
+    const canvas = document.getElementById('chartProspect');
+    if (charts.chartProspect) charts.chartProspect.destroy();
+    charts.chartProspect = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: d.map(p => p.agent ? [p.name, p.agent] : p.name),
+        datasets: [{ data: d.map(p => p.dials),
+          backgroundColor: d.map(p => (statusColor[p.status] || '#c9a84c') + 'b3'),
+          borderColor:     d.map(p => statusColor[p.status] || '#c9a84c'),
+          borderWidth: 1, borderRadius: 5 }]
+      },
+      options: { ...CHART_DEFAULTS, indexAxis: 'y',
+        scales: {
+          x: { ...CHART_DEFAULTS.scales.x, ticks: { color: '#888', stepSize: 1, precision: 0 } },
+          y: { grid: { display: false }, ticks: { color: '#ccc' } }
+        }
+      }
+    });
+  }
+
+  function renderChartConfirm() {
+    const d = analyticsData.dialsToConfirm;
+    const noEl = document.getElementById('noConfirm');
+    if (!d.length) { noEl.style.display = 'block'; document.getElementById('chartConfirm').style.display = 'none'; return; }
+    noEl.style.display = 'none'; document.getElementById('chartConfirm').style.display = 'block';
+    mkChart('chartConfirm', 'bar', d.map(p => p.agent ? [p.name, p.agent] : p.name), d.map(p => p.dials), '#4caf8a', 'y');
+    // Override y-axis ticks for horizontal
+    charts.chartConfirm.options.scales.y = { grid: { display: false }, ticks: { color: '#ccc' } };
+    charts.chartConfirm.update();
+  }
+
+  function setTimePeriod(period, btn) {
+    currentTimePeriod = period;
+    document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderChartTime(period);
+  }
+
+  function renderChartTime(period) {
+    if (!analyticsData) return;
+    const d = analyticsData.overTime[period];
+    mkChart('chartTime', 'bar', d.map(r => r.label), d.map(r => r.count), '#c9a84c', null);
+  }
+
+  // ── Team Stats ────────────────────────────────────────────────────────────
+  async function refreshTeamStats() {
+    try {
+      const teams = await api('GET', '/analytics/team');
+      const card  = document.getElementById('teamStatsCard');
+      const grid  = document.getElementById('teamStatsGrid');
+      if (!card || !grid) return;
+      card.style.display = '';
+      if (!teams.length) { grid.innerHTML = '<div class="empty-state">No agent data yet.</div>'; return; }
+      grid.innerHTML = teams.map(team => `
+        <div class="team-section">
+          <div class="team-section-hdr">🏆 ${esc(team.label)}</div>
+          <div class="team-grid">
+            ${team.members.map(a => `
+              <div class="team-card">
+                <div class="team-card-name">👤 ${esc(a.name)}</div>
+                <div class="team-stat-row"><span class="team-stat-lbl">Today</span><span class="team-stat-val">${a.today}</span></div>
+                <div class="team-stat-row"><span class="team-stat-lbl">This Week</span><span class="team-stat-val">${a.week}</span></div>
+                <div class="team-stat-row"><span class="team-stat-lbl">This Month</span><span class="team-stat-val">${a.month}</span></div>
+                <div class="team-stat-row"><span class="team-stat-lbl">All Time Dials</span><span class="team-stat-val">${a.total}</span></div>
+                <div class="team-stat-row"><span class="team-stat-lbl">Appointments</span><span class="team-stat-val">${a.appointments}</span></div>
+                <div class="team-stat-row"><span class="team-stat-lbl">Confirmed</span><span class="team-stat-val team-confirmed">${a.confirmed}</span></div>
+              </div>`).join('')}
+          </div>
+        </div>`).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  // ── Calendar ──────────────────────────────────────────────────────────────
+  function renderCalendar() {
+    const { year, month } = calState;
+    const MONTHS = ['January','February','March','April','May','June','July',
+                    'August','September','October','November','December'];
+    document.getElementById('calMonthTitle').textContent = `${MONTHS[month]} ${year}`;
+
+    const firstDay    = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrev  = new Date(year, month, 0).getDate();
+    const today       = new Date();
+    const cells       = [];
+
+    for (let i = firstDay - 1; i >= 0; i--) {
+      const m = month === 0 ? 11 : month - 1;
+      const y = month === 0 ? year - 1 : year;
+      cells.push({ date: daysInPrev - i, month: m, year: y, other: true });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ date: d, month, year, other: false,
+        isToday: year === today.getFullYear() && month === today.getMonth() && d === today.getDate() });
+    }
+    let nxt = 1;
+    while (cells.length % 7 !== 0) {
+      const m = month === 11 ? 0 : month + 1;
+      const y = month === 11 ? year + 1 : year;
+      cells.push({ date: nxt++, month: m, year: y, other: true });
+    }
+
+    const grid = document.getElementById('calGrid');
+    if (!grid) return;
+    grid.innerHTML = cells.map(cell => {
+      const iso   = `${cell.year}-${String(cell.month+1).padStart(2,'0')}-${String(cell.date).padStart(2,'0')}`;
+      const appts = state.appointments.filter(a => a.date && a.date.startsWith(iso));
+      const cls   = [cell.other ? 'other-month' : '', cell.isToday ? 'today' : ''].filter(Boolean).join(' ');
+      return `<div class="cal-cell ${cls}">
+        <div class="cal-day-num">${cell.date}</div>
+        ${appts.map(a => `<span class="cal-appt-chip ${a.status}" onclick="openProspect(${a.id})" title="${esc(a.firstName)} ${esc(a.lastName)} — ${esc(a.policyType)}">${esc(a.firstName)} ${esc(a.lastName[0]||'')}.</span>`).join('')}
+      </div>`;
+    }).join('');
+  }
+
+  function prevMonth() {
+    if (calState.month === 0) { calState.month = 11; calState.year--; }
+    else calState.month--;
+    renderCalendar();
+  }
+  function nextMonth() {
+    if (calState.month === 11) { calState.month = 0; calState.year++; }
+    else calState.month++;
+    renderCalendar();
+  }
+
+  // ── Keyboard ───────────────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+    if (/^[0-9*#]$/.test(e.key)) dialPress(e.key);
+    if (e.key === 'Backspace') dialBackspace();
+    if (e.key === 'Enter') launchCall('tel');
+    if (e.key === 'Escape') closeModal();
+  });
+  document.getElementById('prospectModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('prospectModal')) closeModal();
+  });
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function formatDate(str) {
+    if (!str) return '–';
+    const d = new Date(str);
+    return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'})
+      + ' · ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60)    return `${diff}s ago`;
+    if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  }
+  function esc(s='') { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function j(v) { return JSON.stringify(v); }
+
+  checkSession();
+</script>
+</body>
+</html>
